@@ -3,6 +3,7 @@
 
 
 #include "Particles/GLParticleSystem.h"
+#include "Particles/ParticleSystem.h"
 #include <SFML/Graphics.hpp>
 
 
@@ -16,13 +17,13 @@ class Game
         void mainLoop();
         void update(const float dt);
         void render(const float dt);
-		void renderParticle();
     protected:
     private:
 		sf::CircleShape * circ;
 		sf::RenderWindow* gameWindow;
 		sf::Font mainFont;
 		sf::Text mainText;
+		sf::Text helpText;
 		
         void processEvents();
 		void createParticleSystem(size_t count);
@@ -33,8 +34,11 @@ class Game
 
 		std::chrono::high_resolution_clock::time_point renderCurrentTime;
 		std::chrono::high_resolution_clock::time_point renderLastTime;
-		GLParticleSystem* particles;
+		spl::ParticleSystem * nParticles;
 		sf::Image mTexture;
+		bool isPoints;
+		float particleSize;
+		int mouseDelta;
 
 };
 

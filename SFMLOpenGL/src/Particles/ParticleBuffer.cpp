@@ -8,25 +8,69 @@ namespace spl
 {
 	ParticleBuffer::ParticleBuffer()
 	{
+		xdist = std::uniform_real_distribution<float>(-1.0f, 1.0f);
 	}
 	
+	glm::vec2 ParticleBuffer::randomPosition()
+	{
+		float x = xdist(eng);
+		float y = xdist(eng);
+		return glm::vec2(x, y);
+	}
 	
 	ParticleBuffer::~ParticleBuffer()
 	{
 	}
-	
-	void spl::ParticleBuffer::GenerateBuffer(size_t maximumParticles)
+
+
+
+	void ParticleBuffer::ActivateVAO(BufferType bufferType)
+	{
+		GLuint bufferHandle;
+		switch (bufferType)
+		{
+		case BufferType::Render:
+			bufferHandle = renderVAO;
+			break;
+		case BufferType::Update:
+			bufferHandle = updateVAO;
+			break;
+		}
+		GLuint err = glGetError();
+		glBindVertexArray(bufferHandle);
+		err = glGetError();
+	}
+	void ParticleBuffer::DeactivateVAO()
+	{
+		glBindVertexArray(0);
+	}
+
+	void ParticleBuffer::BindBufferBase()
+	{
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleVBO);
+
+	}
+
+
+
+	void spl::ParticleBuffer::GenerateBuffer(size_t maximumParticles, spl::ShaderProgram &renderProgram)
 	{
 		//Create array of particles
 		Particle * particleArray = new Particle[maximumParticles];
-		size_t bufferSize = sizeof(Particle)* maximumParticles;
+		for (int i = 0; i < maximumParticles; i++)
+		{
+				particleArray[i].Position = randomPosition() * 800.0f;
+				particleArray[i].Velocity = glm::vec2(0.0f, 0.0f);
+		}
+		bufferSize = sizeof(Particle)* maximumParticles;
 	
-		CreateUpdateVAO(bufferSize, particleArray);
+		CreateUpdateVAO(particleArray);
+		CreateRenderVAO(renderProgram);
 		//Delete all particles in initial array
 		delete[] particleArray;
 	}
 	
-	void spl::ParticleBuffer::CreateUpdateVAO(size_t bufferSize, void* data)
+	void spl::ParticleBuffer::CreateUpdateVAO(void* data)
 	{
 		//Create VertexArrayObject
 		glGenVertexArrays(1, &updateVAO);
@@ -35,7 +79,12 @@ namespace spl
 		glGenBuffers(1, &particleVBO);
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, particleVBO);
 		glBufferData(GL_SHADER_STORAGE_BUFFER, bufferSize, data, GL_STREAM_DRAW);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particleVBO);
+
 		glBindVertexArray(0); //End VAO
+
+
+
 	
 			
 	
@@ -46,15 +95,21 @@ namespace spl
 	
 	}
 	
-	void spl::ParticleBuffer::CreateRenderVAO(size_t bufferSize)
+	void spl::ParticleBuffer::CreateRenderVAO(spl::ShaderProgram& renderProgram)
 	{
 		glGenVertexArrays(1, &renderVAO);
 		glBindVertexArray(renderVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, particleVBO);
-		glEnableVertexAttribArray(particleAttributes["position"]);
-		glEnableVertexAttribArray(particleAttributes["velocity"]);
-		glVertexAttribPointer(particleAttributes["position"], 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0);
-		glVertexAttribPointer(particleAttributes["velocity"], 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void *) sizeof(glm::vec2));
+		
+		//Add all attributes
+
+		GLuint positionLoc = glGetAttribLocation(renderProgram.Id(),"position");
+		GLuint velocityLoc = glGetAttribLocation(renderProgram.Id(),"velocity");
+		glEnableVertexAttribArray(positionLoc);
+		glEnableVertexAttribArray(velocityLoc);
+		glVertexAttribPointer(positionLoc, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), (void*)0);
+		glVertexAttribPointer(velocityLoc, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), (void*)sizeof(glm::vec2));
+
 		GLint err = glGetError();
 		glBindVertexArray(0); //End VAO1
 	}

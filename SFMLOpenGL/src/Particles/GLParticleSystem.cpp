@@ -15,9 +15,7 @@
 
 GLParticleSystem::GLParticleSystem()
 {
-	srand(time(0));
-	std::uniform_real_distribution<float> xxDist(-1.0, 1.0);
-	xdist = xxDist;
+	
 
 
 }
@@ -29,10 +27,11 @@ GLParticleSystem::~GLParticleSystem()
 
 void GLParticleSystem::Initialize(size_t pCount)
 {
+	srand(time(0));
+	std::uniform_real_distribution<float> xxDist(-1.0, 1.0);
+	xdist = xxDist;
 	mTimeStruct.currentTime = std::chrono::high_resolution_clock::now();
 	particleCount = pCount;
-	float lifetime = 3.0f;
-	glEnable(GL_TEXTURE_2D);
 
 
 	//Generate matrices
@@ -57,15 +56,14 @@ void GLParticleSystem::Initialize(size_t pCount)
 	//Generate VAO
 	glGenVertexArrays(1, &computeVAO); // Create our Vertex Array Object  
 	glBindVertexArray(computeVAO);
-	err = glGetError();
 
 	size_t particleSize = sizeof(spl::Particle);
 	size_t bufferSize = particleSize * particleCount;
 	glGenBuffers(1, &particlePosition);
-	err = glGetError();
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particlePosition);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, bufferSize, particleArray, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, bufferSize, particleArray, GL_STREAM_DRAW);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particlePosition);
 	glBindVertexArray(0); //End VAO1
 	
 	CompileShaders();
@@ -73,11 +71,11 @@ void GLParticleSystem::Initialize(size_t pCount)
 	glGenVertexArrays(1, &renderVAO);
 	glBindVertexArray(renderVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, particlePosition);
+	
 	glEnableVertexAttribArray(velAttrib);
 	glEnableVertexAttribArray(posAttrib);
 	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), 0);
 	glVertexAttribPointer(velAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), (void *) sizeof(glm::vec2));
-	err = glGetError();
 	glBindVertexArray(0); //End VAO1
 
 
@@ -100,28 +98,22 @@ void GLParticleSystem::Initialize(size_t pCount)
 void GLParticleSystem::Draw(float delta)
 {
 
+	err = glGetError();
 	glUseProgram(renderProgram);
-	/*glBindBuffer(GL_ARRAY_BUFFER, particlePosition);
-	glVertexAttribPointer(posAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0);
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(velAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void *) sizeof(glm::vec2));
-	glEnableVertexAttribArray(velAttrib);*/
 	glBindVertexArray(renderVAO);
-	//glEnableVertexAttribArray(posAttrib);
-	//glEnableVertexAttribArray(velAttrib);
+	err = glGetError();
 	
 	//Texture stuff
-	glBindTexture(GL_TEXTURE_2D, particleTexture);
-	glUniform1i(renderProgram, particleTexturePosition);
+	glBindTexture(GL_TEXTURE_2D, 1);
 	err = glGetError();
 	//Draw
 	//glBlendFunc(GL_SOURCE0_ALPHA, GL_ONE);
 	glDrawArrays(GL_POINTS, 0, particleCount);
 
 	glBindVertexArray(0);
-	err = glGetError();
+	glUseProgram(0);
 
-	
+
 
 }
 
@@ -176,24 +168,40 @@ void GLParticleSystem::CompileShaders()
 void GLParticleSystem::UpdateParticles(float delta, int mouseX, int mouseY)
 {
 
-	
-	glClear(GL_COLOR_BUFFER_BIT);
+
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(computeProgram);
-
+	glBindVertexArray(computeVAO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particlePosition);
-	
-	glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"), delta);
+
 	glm::vec2 mousePoss;
 	mousePoss.x = mouseX;
 	mousePoss.y = mouseY;
+	glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"), delta);
 	glUniform2fv(mousePosLoc, 1, glm::value_ptr(mousePoss));
 
 
 	glDispatchCompute(256, 10, 1);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+
+	glUseProgram(2);
+	glBindVertexArray(1);
+
+	
+	glUniform1f(glGetUniformLocation(2, "deltaTime"), delta);
+	glUniform2fv(mousePosLoc, 1, glm::value_ptr(mousePoss));
+
+
+	glDispatchCompute(256, 10, 1);
+
+	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+	glBindVertexArray(0);
+	glUseProgram(0);
 
 
 }
@@ -231,27 +239,4 @@ void GLParticleSystem::CreateMatrices()
 
 }
 
-int GLParticleSystem::CreateTexture(char* imgData, int width, int height)
-{
-	glGenTextures(1, &particleTexture);
-	glBindTexture(GL_TEXTURE_2D, particleTexture);
 
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
-
-	glTexImage2D(
-		GL_TEXTURE_2D, 0, GL_RGBA,
-		width, height,
-		0,
-		GL_RGBA, GL_UNSIGNED_BYTE, imgData
-		);
-	particleTexturePosition = glGetUniformLocation(renderProgram, "tex0");
-	glUniform1i(renderProgram, particleTexturePosition);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, particleTexture);
-	return glGetError();
-}

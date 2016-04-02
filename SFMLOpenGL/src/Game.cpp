@@ -10,6 +10,9 @@
 #include <sstream>
 #include "GLHelpers/Shader.h"
 #include "Particles/ParticleSystem.h"
+#include "GLHelpers/TextureManager.h"
+#include <algorithm>
+#include "SFML/Graphics/Rect.hpp"
 
 Game::Game()
 {
@@ -18,6 +21,9 @@ Game::Game()
 	frameCount = 0;
 	renderCurrentTime = std::chrono::high_resolution_clock::now();
 	renderLastTime = renderCurrentTime;
+	particleSize = 5.0f;
+	mouseDelta = 0.0f;
+	particlesToMake = 1000;
 }
 
 Game::~Game()
@@ -29,10 +35,10 @@ Game::~Game()
 
 void Game::createWindow()
 {
+	
 
 	glewInit();
 	glewExperimental = GL_TRUE;
-
 
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
@@ -53,6 +59,7 @@ void Game::createWindow()
 	circ->setPosition(sf::Vector2f(150, 150));
 	circ->setRadius(25);
 	
+	spl::TextureManager::getInstance().addTexture(std::string("test"), std::string("textures\\particle.png"));
 
 	GLuint vertexBuffer;
 	GLenum err = glewInit();
@@ -67,24 +74,31 @@ void Game::createWindow()
 	//Load font
 	bool fontload = mainFont.loadFromFile("fonts\\digital-7.ttf");
 	mainText.setFont(mainFont);
-	mainText.setCharacterSize(24); // in pixels, not points!
+	mainText.setCharacterSize(18); // in pixels, not points!
 	mainText.setColor(sf::Color(255, 100, 100));
 	mainText.setString("Mouse Position:");
 	mainText.setPosition(5.0, 5.0);
 
-	spl::ParticleSystem pSystem;
-	GLuint sha;
-	try{
-		pSystem.Initialize(100);
-		
-	}
-	catch (std::exception& ex)
-	{
-		std::string t(ex.what());
-		int a = 1;
-	}
-	int b = 1;
+	helpText.setFont(mainFont);
+	helpText.setCharacterSize(18); // in pixels, not points!
+	helpText.setColor(sf::Color(255, 100, 100));
+	std::stringstream ss;
+	ss << "Controls: \n\n" <<
+		"\n\nSpacebar: Create particles" <<
+		"\n\nScroll wheel: Change particle size" <<
+		"\n\nScroll wheel (click): Change particle type" <<
+		"\n\nUp/Down arrows: Change number of particles to create" <<
+		"\n\n(Tip: Hold Left shift while using arrow keys)" <<
+		"\n\nMouse buttons: Attract or repel particles.";
+	
+	helpText.setString(ss.str());
+	sf::FloatRect fr = helpText.getLocalBounds();
+	helpText.setPosition(10.0f, (float)gameWindow->getSize().y - (fr.height * 1.5f));
 
+	
+	
+
+	
 }
 
 void Game::mainLoop()
@@ -148,18 +162,22 @@ void Game::render(const float dt)
 	gameWindow->clear();
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	sf::RenderStates states;
-
-	if (particles != nullptr)
+	
+	
+	if (nParticles != nullptr)
 	{
-		particles->Draw(dt);
+		nParticles->Draw(dt,particleSize);
 	}
+
+
 
 	
 	GLUtility::ClearGLState();
 	gameWindow->resetGLStates();
 	
-	gameWindow->draw(*circ, states);
+	//gameWindow->draw(*circ, states);
 	gameWindow->draw(mainText, states);
+	gameWindow->draw(helpText, states);
 	gameWindow->display();
 	
 }
@@ -189,15 +207,27 @@ void Game::update(const float dt)
 	double frameTime = 1000.0 / double(frameCountCache);
 	double fps = frameCountCache;
 	std::stringstream ss;
-	ss << "Mouse Position:  X: " << mPos.x << "  Y: " << mPos.y <<
-		"\n\nFrame time (1 second average): " << frameTime <<
+	ss <<"Frame time (1 second average): " << frameTime <<
 		"\n\nFPS: " << fps <<
-		"\n\nParticles to create: " << particlesToMake;
+		"\n\nNext particle count: " << particlesToMake <<
+		"\n\nNext particle type: " << ((isPoints) ? "Points" : "Sprites") << 
+		"\n\nParticle size: " << particleSize;
 	mainText.setString(ss.str());
-
-	if (particles != nullptr)
+	float mouseForce = 0.0f;
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 	{
-		particles->UpdateParticles(dt,mPos.x,mPos.y);
+		mouseForce = 1.0f;
+	}
+	else if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+	{
+		mouseForce = -1.0f;
+	}
+
+
+
+	if (nParticles != nullptr)
+	{
+		nParticles->Update(dt, mPos.x, mPos.y,mouseForce);
 	}
 }
 
@@ -205,6 +235,7 @@ void Game::update(const float dt)
 
 void Game::processEvents()
 {
+	
      sf::Event event;
         while (gameWindow->pollEvent(event))
         {
@@ -214,6 +245,22 @@ void Game::processEvents()
                 gameWindow->close();
 				//Cleanup all open gl
             }
+
+			if (event.type == sf::Event::EventType::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Middle)
+			{
+				isPoints = !isPoints;
+			}
+			mouseDelta = 0;
+			if (event.type == sf::Event::EventType::MouseWheelScrolled && mouseDelta == 0)
+			{
+				mouseDelta = glm::sign(event.mouseWheelScroll.delta);
+				float amount = 1.0f;
+				float maxx = 100.0f;
+				particleSize += mouseDelta  * amount;
+				particleSize = std::max(0.0f, std::min(particleSize, maxx));
+				
+				
+			}
 
 			if (event.type == sf::Event::EventType::KeyPressed)
 			{
@@ -260,19 +307,20 @@ void Game::processEvents()
         }
 }
 
-void Game::renderParticle()
-{
 
-}
 
 void Game::createParticleSystem(size_t count)
 {
-	if (particles != nullptr)
+	
+	if (nParticles != nullptr)
 	{
-		delete particles;
+		delete nParticles;
 	}
 
-	particles = new GLParticleSystem();
-	particles->Initialize(count);
-	particles->CreateTexture((char*)mTexture.getPixelsPtr(), mTexture.getSize().x, mTexture.getSize().y);
+
+	nParticles = new spl::ParticleSystem();
+	nParticles->Initialize(count,isPoints);
+	//nParticles->CreateTexture((char*)mTexture.getPixelsPtr(), mTexture.getSize().x, mTexture.getSize().y);
 }
+
+

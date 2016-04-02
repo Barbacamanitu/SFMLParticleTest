@@ -7,11 +7,11 @@ layout (local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
 
 layout (std430, binding = 0) buffer PositionBuffer {
 vec4 Particle[]; 
-vec4 Extra[]; 
 };
 
 uniform float deltaTime;
 uniform vec2 mousePos;
+uniform float mouseForce;
 
 
 vec2 calculateAcceleration(vec2 particlePosition)
@@ -23,7 +23,7 @@ vec2 calculateAcceleration(vec2 particlePosition)
 	
 	float force = C_GRAVITY / (distance);
 	vec2 accelDirection = normalize(mousePos - particlePosition);
-	return accelDirection * force;
+	return accelDirection * force * mouseForce;
 	
 }
 
@@ -44,9 +44,9 @@ void main()
 	vec2 newVelocity = currentVelocity + (acceleration * deltaTime);
 	
 	//Apply position update
-	Particle[index].xy = currentPosition + currentVelocity * deltaTime;	
+	Particle[index].xy = currentPosition + currentVelocity * deltaTime;
 	//Save velocity for next frame
-	Particle[index].zw = newVelocity * 0.99;
+	Particle[index].zw = newVelocity * 0.995;
 	
 	
 }

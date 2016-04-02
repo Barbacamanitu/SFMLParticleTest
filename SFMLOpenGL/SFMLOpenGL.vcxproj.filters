@@ -63,9 +63,6 @@
     <ClInclude Include="include\Particles\Particle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\GLHelpers\SSBO.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\ErrorHandling\ErrorMessages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -79,6 +76,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Particles\ParticleBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GLHelpers\TextureManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\GLHelpers\LodePNG.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -119,9 +122,6 @@
     <ClCompile Include="src\Particles\ParticleEmitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\GLHelpers\SSBO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\GLHelpers\MVPMatrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,6 +129,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Particles\ParticleBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLHelpers\TextureManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GLHelpers\LodePNG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

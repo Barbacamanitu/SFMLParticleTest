@@ -157,11 +157,12 @@
     <ClInclude Include="include\ErrorHandling\ErrorMessages.h" />
     <ClInclude Include="include\ErrorHandling\SPLException.h" />
     <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\GLHelpers\LodePNG.h" />
     <ClInclude Include="include\GLHelpers\MVPMatrix.h" />
     <ClInclude Include="include\GLHelpers\Shader.h" />
     <ClInclude Include="include\GLHelpers\ShaderProgram.h" />
-    <ClInclude Include="include\GLHelpers\SSBO.h" />
     <ClInclude Include="include\GLHelpers\Texture.h" />
+    <ClInclude Include="include\GLHelpers\TextureManager.h" />
     <ClInclude Include="include\Math\VectorMath.h" />
     <ClInclude Include="include\Particles\GLParticleSystem.h" />
     <ClInclude Include="include\Particles\GLUtility.h" />
@@ -180,11 +181,15 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\GLHelpers\LodePNG.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\GLHelpers\MVPMatrix.cpp" />
     <ClCompile Include="src\GLHelpers\Shader.cpp" />
     <ClCompile Include="src\GLHelpers\ShaderProgram.cpp" />
-    <ClCompile Include="src\GLHelpers\SSBO.cpp" />
     <ClCompile Include="src\GLHelpers\Texture.cpp" />
+    <ClCompile Include="src\GLHelpers\TextureManager.cpp" />
     <ClCompile Include="src\Math\VectorMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

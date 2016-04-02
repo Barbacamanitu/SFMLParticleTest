@@ -1,10 +1,10 @@
 #pragma once
 #include <vector>
 #include "ParticleEmitter.h"
-#include "GLHelpers/SSBO.h"
 #include "GLHelpers/MVPMatrix.h"
 #include <random>
 #include "GLHelpers/ShaderProgram.h"
+#include "ParticleBuffer.h"
 namespace spl
 {
 	class ParticleSystem
@@ -13,22 +13,25 @@ namespace spl
 		ParticleSystem();
 		~ParticleSystem();
 		
-		void Initialize(size_t maximumParticles);
-		void Draw(float delta);
+		void Initialize(size_t maximumParticles, bool isPoints);
+		void Draw(float delta, float particleSize);
+		void Update(float delta, float mouseX, float mouseY, float mouseForce);
 		glm::vec2 randomPosition()
 		{
 			float x = xdist(eng);
 			float y = xdist(eng);
 			return glm::vec2(x, y);
 		}
-	private:
-		
+		void UpdateParticleSize(int direction);
 
+	private:
+		GLuint err;
+		GLuint particleTexture;
 		std::vector<ParticleEmitter> emitters;
 		size_t maxParticles;
 
 		//Buffers
-		spl::SSBO particleSSBO;
+		spl::ParticleBuffer particleBuffer;
 
 		//Shader Programs
 		ShaderProgram renderProgram;
@@ -38,7 +41,11 @@ namespace spl
 
 		std::default_random_engine eng;
 		std::uniform_real_distribution<float> xdist;
+
+		void CreateMatrices();
+
 		
+
 	};
 }
 

@@ -18,7 +18,6 @@ public:
 	void Draw(float alpha);
 	void Initialize(size_t particleCount);
 	void UpdateParticles(float delta, int mouseX,int mouseY);
-	int CreateTexture(char* imgData, int width, int height);
 
 private:
 	struct TimeStruct {
@@ -38,7 +37,6 @@ private:
 	GLint err;
 	GLuint particlePosition;
 	GLuint particleVelocity;
-	GLuint particleTexturePosition;
 	GLuint mousePosLoc;
 	GLint posAttrib;
 	GLint velAttrib;
@@ -47,7 +45,6 @@ private:
 	size_t particleCount;
 	std::default_random_engine eng;
 	std::uniform_real_distribution<float> xdist;
-	GLuint particleTexture;
 
 	glm::mat4 projectionMatrix;
 	glm::mat4 viewMatrix;
