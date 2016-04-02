@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 #include "GL\glew.h"
-#include "ErrorHandling\ShaderException.h"
+#include "ErrorHandling\SPLException.h"
 namespace spl
 {
 
@@ -30,13 +30,13 @@ namespace spl
 		std::ifstream in(filename);
 		if (!in.good())
 		{
-			throw spl::ShaderException(spl::ShaderErrorIDs::FileNotFound);
+			throw spl::SPLException(spl::ErrorMessages::SHADER_FILE_NOT_FOUND);
 			in.close();
 		}
 		std::string contents((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
 		if (contents.length() == 0)
 		{
-			throw spl::ShaderException(spl::ShaderErrorIDs::EmptySourceFile);
+			throw spl::SPLException(spl::ErrorMessages::SHADER_FILE_EMPTY);
 		}
 		const GLchar* glSource = (const GLchar*)contents.c_str();
 		GLuint shaderID = createShader(glSource);
@@ -51,7 +51,7 @@ namespace spl
 		size_t lastDot = filenameString.find_last_of(".");
 		if (lastDot == std::string::npos || lastDot == filenameString.length()-1)
 		{
-			throw spl::ShaderException(spl::ShaderErrorIDs::FileNotFound);
+			throw spl::SPLException(spl::ErrorMessages::SHADER_UNSUPPORTED_FORMAT);
 		}
 
 		std::string extension = filenameString.substr(lastDot+1);
@@ -73,8 +73,8 @@ namespace spl
 		{
 			return ShaderType::Compute;
 		}
-		//If code makes it here, the exntension isn't supported.
-		throw spl::ShaderException(spl::ShaderErrorIDs::UnsupportedFormat);
+		//If code makes it here, the extension isn't supported.
+		throw spl::SPLException(spl::ErrorMessages::SHADER_UNSUPPORTED_FORMAT);
 	}
 
 	GLuint Shader::createShader(const GLchar* source)
@@ -89,7 +89,7 @@ namespace spl
 			shaderType = GL_FRAGMENT_SHADER;
 			break;
 		case ShaderType::Geometry:
-			shaderType = GL_FRAGMENT_SHADER;
+			shaderType = GL_GEOMETRY_SHADER;
 			break;
 		case ShaderType::Vertex:
 			shaderType = GL_VERTEX_SHADER;
@@ -98,7 +98,33 @@ namespace spl
 		}
 		GLuint shader = glCreateShader(shaderType);
 		glShaderSource(shader, 1, &source, NULL);
+		id = shader;
 		return shader;
+	}
+
+	void Shader::compile()
+	{
+		glCompileShader(id);
+
+		//Check to make sure shader compiled properly
+		GLint status;
+		glGetShaderiv(id, GL_COMPILE_STATUS, &status);
+
+		if (status != GL_TRUE)
+		{
+			char buffer[512];
+			glGetShaderInfoLog(id, 512, NULL, buffer);
+			spl::SPLException compileException(spl::ErrorMessages::SHADER_COMPILATION_ERROR);
+			compileException.ExtraData(std::string(buffer));
+			throw compileException;
+			
+		}
+	}
+
+	void Shader::compileFromFile(const char* filename)
+	{
+		loadFromFile(filename);
+		compile();
 	}
 
 }

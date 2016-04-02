@@ -8,7 +8,6 @@
 #include <iostream>
 #include "Game.h"
 #include "GLHelpers/Shader.h"
-#include "ErrorHandling\ShaderException.h"
 int _tmain(int argc, _TCHAR* argv[])
 {
 

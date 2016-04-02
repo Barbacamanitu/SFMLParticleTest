@@ -52,6 +52,10 @@ private:
 	glm::mat4 projectionMatrix;
 	glm::mat4 viewMatrix;
 
+
+	GLuint computeVAO;
+	GLuint renderVAO;
+
 	
 
 

@@ -9,6 +9,7 @@
 #include <chrono>
 #include <sstream>
 #include "GLHelpers/Shader.h"
+#include "Particles/ParticleSystem.h"
 
 Game::Game()
 {
@@ -71,12 +72,10 @@ void Game::createWindow()
 	mainText.setString("Mouse Position:");
 	mainText.setPosition(5.0, 5.0);
 
-	spl::ShaderType typee;
+	spl::ParticleSystem pSystem;
 	GLuint sha;
 	try{
-		spl::Shader newShader;
-		sha = newShader.loadFromFile("shaders\\move.cs");
-		typee = newShader.GetType();
+		pSystem.Initialize(100);
 		
 	}
 	catch (std::exception& ex)

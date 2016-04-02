@@ -11,6 +11,7 @@
 #include <random>
 #include <assert.h>
 #include <chrono>
+#include "Particles/Particle.h"
 
 GLParticleSystem::GLParticleSystem()
 {
@@ -38,33 +39,57 @@ void GLParticleSystem::Initialize(size_t pCount)
 	
 
 	glm::vec4 *vertices = new glm::vec4[particleCount];
+	spl::Particle * particleArray = new spl::Particle[particleCount];
 	for (int i = 0; i < particleCount; i++)
 	{
 		glm::vec2 pos = randomPosition() * 800.0f;
 		glm::vec2 vel = randomPosition() * 0.0f;
 
 		vertices[i] = glm::vec4(pos.x, pos.y,vel.x,vel.y);		
+		particleArray[i].Position = pos;
 	
 	}
+
+	
+
+
+
+	//Generate VAO
+	glGenVertexArrays(1, &computeVAO); // Create our Vertex Array Object  
+	glBindVertexArray(computeVAO);
 	err = glGetError();
 
-	size_t s = sizeof(glm::vec4) * particleCount;
+	size_t particleSize = sizeof(spl::Particle);
+	size_t bufferSize = particleSize * particleCount;
 	glGenBuffers(1, &particlePosition);
 	err = glGetError();
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, particlePosition);
-	glBufferData(GL_SHADER_STORAGE_BUFFER,s, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, bufferSize, particleArray, GL_STATIC_DRAW);
+	glBindVertexArray(0); //End VAO1
 	
-	delete vertices;
 	CompileShaders();
+
+	glGenVertexArrays(1, &renderVAO);
+	glBindVertexArray(renderVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, particlePosition);
+	glEnableVertexAttribArray(velAttrib);
+	glEnableVertexAttribArray(posAttrib);
+	glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), 0);
+	glVertexAttribPointer(velAttrib, 2, GL_FLOAT, GL_FALSE, sizeof(spl::Particle), (void *) sizeof(glm::vec2));
+	err = glGetError();
+	glBindVertexArray(0); //End VAO1
+
+
+	delete vertices;
+	
 	err = glGetError();
 
 	glUseProgram(renderProgram);
 
 	
 
-	GLint uniTrans = glGetUniformLocation(renderProgram, "projMatrix");
-	glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+	
 	err = glGetError();
 	int aa = 1;
 
@@ -76,12 +101,15 @@ void GLParticleSystem::Draw(float delta)
 {
 
 	glUseProgram(renderProgram);
-	glBindBuffer(GL_ARRAY_BUFFER,particlePosition);
+	/*glBindBuffer(GL_ARRAY_BUFFER, particlePosition);
 	glVertexAttribPointer(posAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), 0);
 	glEnableVertexAttribArray(posAttrib);
 	glVertexAttribPointer(velAttrib, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4), (void *) sizeof(glm::vec2));
-	glEnableVertexAttribArray(velAttrib);
-
+	glEnableVertexAttribArray(velAttrib);*/
+	glBindVertexArray(renderVAO);
+	//glEnableVertexAttribArray(posAttrib);
+	//glEnableVertexAttribArray(velAttrib);
+	
 	//Texture stuff
 	glBindTexture(GL_TEXTURE_2D, particleTexture);
 	glUniform1i(renderProgram, particleTexturePosition);
@@ -89,9 +117,10 @@ void GLParticleSystem::Draw(float delta)
 	//Draw
 	//glBlendFunc(GL_SOURCE0_ALPHA, GL_ONE);
 	glDrawArrays(GL_POINTS, 0, particleCount);
+
+	glBindVertexArray(0);
 	err = glGetError();
-	glDisableVertexAttribArray(posAttrib);
-	glDisableVertexAttribArray(velAttrib);
+
 	
 
 }
@@ -152,9 +181,8 @@ void GLParticleSystem::UpdateParticles(float delta, int mouseX, int mouseY)
 
 	glUseProgram(computeProgram);
 
-
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, particlePosition);
-	//glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, particleVelocity);
+	
 	glUniform1f(glGetUniformLocation(computeProgram, "deltaTime"), delta);
 	glm::vec2 mousePoss;
 	mousePoss.x = mouseX;
@@ -163,6 +191,7 @@ void GLParticleSystem::UpdateParticles(float delta, int mouseX, int mouseY)
 
 
 	glDispatchCompute(256, 10, 1);
+
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
 
@@ -181,13 +210,12 @@ void GLParticleSystem::CreateMatrices()
 	glm::vec2 cameraPosition(-800.0f,-450.0f);
 	glm::vec2 windowMax(1600.f, 900.0f);
 	glm::vec2 windowMin(0.0f, 0.0f);
-	projectionMatrix = glm::ortho(windowMin.x, windowMax.x, windowMin.y, windowMax.y, 10.f, -100.f);
+	projectionMatrix = glm::ortho(windowMin.x, windowMax.x, windowMin.y, windowMax.y, -.1f, 100.f);
 	viewMatrix = glm::lookAt(
 		glm::vec3(cameraPosition.x, cameraPosition.y, 4.f),
 		glm::vec3(cameraPosition.x, cameraPosition.y, 0.0f),
 		glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 modelMatrix;
 	//Apply to the shader program
 	glUseProgram(renderProgram);
 	//Set up the uniforms
@@ -196,6 +224,7 @@ void GLParticleSystem::CreateMatrices()
 	err = glGetError();
 	glUniformMatrix4fv(modelViewMatLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
 	glUniformMatrix4fv(projMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+	
 	err = glGetError();
 	int aaa = 1;
 

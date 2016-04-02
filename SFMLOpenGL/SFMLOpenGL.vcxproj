@@ -154,17 +154,21 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ErrorHandling\ExceptionCodes.h" />
+    <ClInclude Include="include\ErrorHandling\ErrorMessages.h" />
+    <ClInclude Include="include\ErrorHandling\SPLException.h" />
     <ClInclude Include="include\Game.h" />
+    <ClInclude Include="include\GLHelpers\MVPMatrix.h" />
     <ClInclude Include="include\GLHelpers\Shader.h" />
-    <ClInclude Include="include\ErrorHandling\ShaderException.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-    </ClInclude>
     <ClInclude Include="include\GLHelpers\ShaderProgram.h" />
+    <ClInclude Include="include\GLHelpers\SSBO.h" />
+    <ClInclude Include="include\GLHelpers\Texture.h" />
     <ClInclude Include="include\Math\VectorMath.h" />
     <ClInclude Include="include\Particles\GLParticleSystem.h" />
     <ClInclude Include="include\Particles\GLUtility.h" />
+    <ClInclude Include="include\Particles\Particle.h" />
+    <ClInclude Include="include\Particles\ParticleBuffer.h" />
+    <ClInclude Include="include\Particles\ParticleEmitter.h" />
+    <ClInclude Include="include\Particles\ParticleSystem.h" />
     <ClInclude Include="include\Render\RenderMath.h" />
     <ClInclude Include="include\Timing\Timestep.h" />
     <ClInclude Include="stdafx.h" />
@@ -172,19 +176,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SFMLTemplate.cpp" />
-    <ClCompile Include="src\ErrorHandling\ExceptionCodes.cpp" />
     <ClCompile Include="src\Game.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\GLHelpers\MVPMatrix.cpp" />
     <ClCompile Include="src\GLHelpers\Shader.cpp" />
     <ClCompile Include="src\GLHelpers\ShaderProgram.cpp" />
+    <ClCompile Include="src\GLHelpers\SSBO.cpp" />
+    <ClCompile Include="src\GLHelpers\Texture.cpp" />
     <ClCompile Include="src\Math\VectorMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\Particles\GLParticleSystem.cpp" />
     <ClCompile Include="src\Particles\GLUtility.cpp" />
+    <ClCompile Include="src\Particles\ParticleBuffer.cpp" />
+    <ClCompile Include="src\Particles\ParticleEmitter.cpp" />
+    <ClCompile Include="src\Particles\ParticleSystem.cpp" />
     <ClCompile Include="src\Render\RenderMath.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
