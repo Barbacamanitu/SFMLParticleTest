@@ -12,6 +12,7 @@ namespace spl
 	ParticleSystem::ParticleSystem()
 	{
 		xdist = std::uniform_real_distribution<float>(-1.0f, 1.0f);
+		obstacles = new float[4];
 	}
 
 	
@@ -24,7 +25,7 @@ namespace spl
 	{
 		maxParticles = maximumParticles;
 
-
+		glEnable(GL_PROGRAM_POINT_SIZE);
 
 		//Create Shader programs
 		computeProgram = spl::ShaderProgram::CreateComputeProgram();
@@ -58,11 +59,10 @@ namespace spl
 		glBindTexture(GL_TEXTURE_2D, spl::TextureManager::getInstance().lookupTexture("test")->Id());
 		glUniform1f(glGetUniformLocation(renderProgram.Id(), "particleSize"), particleSize);
 
-		err = glGetError();
+
 		//Draw
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA);
 		glDrawArrays(GL_POINTS, 0, maxParticles);
-		err = glGetError();
 		particleBuffer.DeactivateVAO();
 	}
 
@@ -93,7 +93,14 @@ namespace spl
 
 	void ParticleSystem::Update(float delta, float mouseX, float mouseY, float mouseForce)
 	{
+		obstacles[0] = mouseX;
+		obstacles[1] = mouseY;
 		
+		obstacles[2] = mouseXX;
+		obstacles[3] = mouseYY;
+
+		mouseXX = mouseX;
+		mouseYY = mouseY;
 		glClear(GL_COLOR_BUFFER_BIT);
 		computeProgram.makeActive();
 		particleBuffer.ActivateVAO(ParticleBuffer::Update);
@@ -104,8 +111,10 @@ namespace spl
 		mousePoss.y = mouseY;
 		err = glGetError();
 		glUniform1f(glGetUniformLocation(computeProgram.Id(), "deltaTime"), delta);
+
 		glUniform1f(glGetUniformLocation(computeProgram.Id(), "mouseForce"), mouseForce);
 		glUniform2fv(glGetUniformLocation(computeProgram.Id(), "mousePos"), 1, glm::value_ptr(mousePoss));
+		glUniform4fv(glGetUniformLocation(computeProgram.Id(), "obstacles"), 1, obstacles);
 		err = glGetError();
 
 		glDispatchCompute(256, 10, 1);

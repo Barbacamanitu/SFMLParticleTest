@@ -42,7 +42,7 @@ namespace spl
 	ShaderProgram ShaderProgram::CreateComputeProgram()
 	{
 		Shader computeShader;
-		computeShader.compileFromFile("shaders\\curl.cs");
+		computeShader.compileFromFile("shaders\\newCurl.cs");
 		ShaderProgram computeProgram;
 		computeProgram.CreateProgram();
 		computeProgram.attachShader(computeShader);
@@ -110,15 +110,13 @@ namespace spl
 
 	spl::ShaderProgram ShaderProgram::CreateRenderProgramPoints()
 	{
-		Shader renderVertexShader, renderGeoShader, renderFragmentShader;
-		renderVertexShader.compileFromFile("shaders\\points\\render.vs");
-		renderGeoShader.compileFromFile("shaders\\render.gs");
-		renderFragmentShader.compileFromFile("shaders\\points\\render.fs");
+		Shader renderVertexShader,  renderFragmentShader;
+		renderVertexShader.compileFromFile("shaders\\points\\p_render.vs");
+		renderFragmentShader.compileFromFile("shaders\\points\\p_render.fs");
 
 		ShaderProgram renderProgram;
 		renderProgram.CreateProgram();
 		renderProgram.attachShader(renderVertexShader);
-		//renderProgram.attachShader(renderGeoShader);
 		renderProgram.attachShader(renderFragmentShader);
 		renderProgram.link();
 		return renderProgram;

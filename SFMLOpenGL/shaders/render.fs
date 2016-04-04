@@ -11,5 +11,4 @@ void main()
   uv.y = 1 - uv.y;
   vec4 t = texture(tex0,uv).rgba;
   outColor = t * Vertex_Color;
-  //outColor = vec4(1.0,0.5,0.5,.5);
 }

@@ -25,6 +25,7 @@ namespace spl
 		void UpdateParticleSize(int direction);
 
 	private:
+		float* obstacles;
 		GLuint err;
 		GLuint particleTexture;
 		std::vector<ParticleEmitter> emitters;
@@ -43,8 +44,9 @@ namespace spl
 		std::uniform_real_distribution<float> xdist;
 
 		void CreateMatrices();
-
-		
+		float noiseRot;
+		float mouseXX;
+		float mouseYY;
 
 	};
 }

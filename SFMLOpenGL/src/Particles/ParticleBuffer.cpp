@@ -59,8 +59,11 @@ namespace spl
 		Particle * particleArray = new Particle[maximumParticles];
 		for (int i = 0; i < maximumParticles; i++)
 		{
-				particleArray[i].Position = randomPosition() * 800.0f;
-				particleArray[i].Velocity = glm::vec2(0.0f, 0.0f);
+			glm::vec2 pos = randomPosition();
+			pos.x *= 700.0f;
+			pos.y *= 400.0f;
+				particleArray[i].Position = pos;
+				particleArray[i].Velocity = glm::vec2(0.0f,0.0f);
 		}
 		bufferSize = sizeof(Particle)* maximumParticles;
 	

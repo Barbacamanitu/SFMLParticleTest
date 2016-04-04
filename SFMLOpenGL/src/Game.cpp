@@ -21,7 +21,7 @@ Game::Game()
 	frameCount = 0;
 	renderCurrentTime = std::chrono::high_resolution_clock::now();
 	renderLastTime = renderCurrentTime;
-	particleSize = 5.0f;
+	particleSize = 20.0f;
 	mouseDelta = 0.0f;
 	particlesToMake = 1000;
 }

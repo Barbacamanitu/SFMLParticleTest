@@ -10,14 +10,11 @@ out vec4 vertexColor;
 
 void main()
 {
-	vec4 slow = vec4(0.2,0.2,.85,.5);
-	vec4 fast = vec4(0.2,0.85,.2,.5);
+	vec4 blue =  vec4(0,.5,1,.5);
+	vec4 green = vec4(0,1,.25,.5);
 	gl_Position =  projectionMatrix * modelViewMatrix * vec4(position, 0.0, 1.0);
-	float speed = length(velocity);
-	speed = min(speed,MAX_SPEED);
-	//Normalize speed
-	speed = (speed / MAX_SPEED );
-	vertexColor = mix(slow,fast,speed);
+	float speed = length(velocity) / 200.0;
+	vertexColor = mix(blue,green,speed);
 	
 }
 
